@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Swords, Upload, Download, Search, Users, Shuffle, Shield, Trophy, Check, X, FileSpreadsheet, CalendarDays, LoaderCircle, CircleCheck, ChevronRight, Lock, TriangleAlert } from 'lucide-react'
+import { Swords, Upload, Download, Search, Users, Shuffle, Shield, Trophy, Check, X, FileSpreadsheet, CalendarDays, LoaderCircle, CircleCheck, ChevronRight, Lock, TriangleAlert, Plus, Trash2 } from 'lucide-react'
 import { drawTeams } from './draw.js'
 import './styles.css'
 
@@ -19,6 +19,11 @@ function App() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [dragging, setDragging] = useState(false)
+  const [manualName, setManualName] = useState('')
+  const [manualGroup, setManualGroup] = useState('')
+  const [manualError, setManualError] = useState('')
+  const manualNameInput = useRef(null)
+  const manualSequence = useRef(0)
   const fileInput = useRef(null)
   const groups = [...new Set(players.map((player) => player.group))].sort((first, second) => first.localeCompare(second, 'vi', { numeric: true }))
   const visible = players.filter((player) => (!groupFilter || player.group === groupFilter) && player.name.toLocaleLowerCase('vi').includes(query.trim().toLocaleLowerCase('vi')))
@@ -39,6 +44,9 @@ function App() {
       setPlayers(imported)
       setSelected(new Set())
       setAssignments(new Map())
+      setManualName('')
+      setManualGroup('')
+      setManualError('')
       setFilename(file.name)
       setTeams(null)
       setRound(0)
@@ -51,6 +59,46 @@ function App() {
       setBusy('')
       if (fileInput.current) fileInput.current.value = ''
     }
+  }
+
+  async function addPlayer(event) {
+    event.preventDefault()
+    if (busy) return
+    setBusy('manual')
+    setManualError('')
+    setNotice('')
+    try {
+      const { parseRows } = await import('./excel.js')
+      const name = manualName.trim()
+      const group = manualGroup.trim()
+      if (!name || !group) throw new Error('Vui lòng nhập đầy đủ người chơi và nhóm.')
+      const validated = parseRows([
+        ['Người chơi', 'nhóm'],
+        ...players.map((player) => [player.name, player.group]),
+        [name, group],
+      ])
+      const newPlayer = { ...validated.at(-1), id: `manual-${++manualSequence.current}` }
+      setPlayers((previous) => [...previous, newPlayer])
+      setManualName('')
+      setManualGroup(newPlayer.group)
+      setQuery('')
+      setGroupFilter('')
+      setTeams(null)
+      setRound(0)
+      setError('')
+      setNotice(`Đã thêm ${newPlayer.name}.`)
+    } catch (issue) {
+      setManualError(issue.message || 'Không thể thêm người chơi. Vui lòng thử lại.')
+    } finally {
+      setBusy('')
+      requestAnimationFrame(() => manualNameInput.current?.focus())
+    }
+  }
+
+  function removePlayer(id) {
+    if (busy) return
+    setPlayers((previous) => previous.filter((player) => player.id !== id))
+    changeSelection([id], false)
   }
 
   function changeSelection(ids, checked) {
@@ -154,6 +202,17 @@ function App() {
               <Upload size={19} />
             </button>
 
+            <form className="manual-entry" onSubmit={addPlayer} aria-labelledby="manual-heading">
+              <h3 id="manual-heading">Nhập trực tiếp</h3>
+              <div className="manual-fields">
+                <label>Người chơi<input ref={manualNameInput} value={manualName} onChange={(event) => setManualName(event.target.value)} maxLength={100} required disabled={!!busy} autoComplete="off" placeholder="Tên người chơi" /></label>
+                <label>Nhóm<input value={manualGroup} onChange={(event) => setManualGroup(event.target.value)} maxLength={60} required disabled={!!busy} autoComplete="off" list="player-groups" placeholder="Tên hoặc số" /></label>
+                <button className="manual-add" type="submit" disabled={!!busy} title="Thêm người chơi" aria-label="Thêm người chơi">{busy === 'manual' ? <LoaderCircle className="spin" size={18} /> : <Plus size={18} />}</button>
+              </div>
+              <datalist id="player-groups">{groups.map((group) => <option key={group} value={group} />)}</datalist>
+              {manualError && <p className="manual-error" role="alert">{manualError}</p>}
+            </form>
+
             <div className="filters">
               <label className="search-field"><Search size={17} /><input placeholder="Tìm người chơi…" aria-label="Tìm người chơi" value={query} onChange={(event) => setQuery(event.target.value)} disabled={!players.length} /></label>
               <select aria-label="Lọc nhóm" value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)} disabled={!players.length}><option value="">Tất cả nhóm</option>{groups.map((group) => <option key={group} value={group}>Nhóm {group}</option>)}</select>
@@ -173,6 +232,7 @@ function App() {
                     <option value="red">Đội Đỏ</option>
                     <option value="blue">Đội Xanh</option>
                   </select>
+                  <button className="icon-button remove-player" type="button" disabled={!!busy} onClick={() => removePlayer(player.id)} title={`Xóa ${player.name}`} aria-label={`Xóa ${player.name}`}><Trash2 size={15} /></button>
                 </div>
               ))}
             </div>
