@@ -1,6 +1,6 @@
 # Chia đội đế chế VDQG
 
-Ứng dụng React + Vite để nhập người chơi từ Excel, chọn người tham gia hôm nay và bốc thăm hai đội theo nhóm xếp hạng.
+Ứng dụng React + Vite để nhập người chơi từ Excel hoặc trực tiếp trên app, chọn người tham gia hôm nay và bốc thăm hai đội theo nhóm xếp hạng.
 
 ## Chạy ứng dụng
 
@@ -32,7 +32,7 @@ npm run preview
 
 ## Sử dụng và quy tắc
 
-1. Nhập Excel bằng nút nhập file hoặc kéo thả file vào vùng nhập.
+1. Nhập Excel bằng nút nhập file hoặc kéo thả file vào vùng nhập; hoặc điền **Người chơi** và **Nhóm** trong mục **Nhập trực tiếp**, rồi nhấn dấu cộng (hoặc Enter) để thêm từng người.
 2. Tích chọn người tham gia. Sau khi nhập, không ai được chọn sẵn.
 3. Với mỗi người tham gia, có thể chọn **Đội Đỏ**, **Đội Xanh** hoặc giữ **Ngẫu nhiên**.
 4. Chọn ít nhất hai người rồi nhấn **Bốc thăm chia đội**. Người đã xếp trước giữ nguyên đội; chỉ những người còn lại được bốc thăm.
@@ -43,6 +43,17 @@ Thuật toán ưu tiên giữ nguyên người đã xếp trước, sau đó gi�
 Nếu các lựa chọn xếp trước không cho phép cân bằng, app vẫn giữ đúng các lựa chọn và hiển thị cảnh báo trong kết quả. Ví dụ: một nhóm có bốn người, trong đó ba người được xếp trước vào Đội Đỏ, thì người còn lại vào Đội Xanh, kết quả nhóm là 3:1. Nếu tất cả người tham gia được xếp trước vào cùng một đội, đội còn lại sẽ trống. Đổi lựa chọn về **Ngẫu nhiên** để bỏ cố định đội. Biểu tượng khóa trong kết quả đánh dấu người được xếp trước.
 
 Bộ lọc không thay đổi người đã chọn hoặc đội đã gán. Nút chọn tất cả chỉ tác động các hàng đang hiển thị. Thay đổi người tham gia hoặc đội được gán sẽ xóa kết quả cũ. Bỏ chọn một người sẽ xóa lựa chọn đội của người đó. Nhập file mới thành công sẽ xóa toàn bộ lựa chọn và kết quả. Nhập file lỗi không làm mất danh sách hiện tại.
+
+## Nhập trực tiếp
+
+- Có thể tạo danh sách không cần Excel hoặc bổ sung người vào danh sách đã nhập từ Excel.
+- Tên và nhóm bắt buộc, giới hạn tương ứng 100 và 60 ký tự; tổng danh sách tối đa 5.000 người.
+- Kiểm tra tên trùng và chuẩn hóa nhóm dùng cùng quy tắc với nhập Excel, bao gồm không phân biệt chữ hoa/thường và gộp khoảng trắng thừa.
+- Ô nhóm gợi ý các nhóm đã có và vẫn cho nhập nhóm mới. Sau khi thêm, giữ lại nhóm để nhập tiếp người cùng nhóm.
+- Người mới chưa được tích tham gia. Những lựa chọn tham gia và đội đã gán cho người cũ được giữ nguyên.
+- Nút thùng rác xóa người khỏi danh sách, đồng thời xóa lựa chọn tham gia và đội được gán của người đó. Có thể thêm lại với dữ liệu đúng nếu nhập nhầm.
+- Thêm hoặc xóa người làm mất kết quả bốc thăm cũ. Nhập một file Excel mới thành công sẽ thay thế toàn bộ danh sách, kể cả người đã nhập trực tiếp.
+- Chưa chạy kiểm thử thực thi hoặc kiểm thử trình duyệt cho luồng nhập trực tiếp; chỉ kiểm tra chẩn đoán của VS Code theo yêu cầu không chạy thử app.
 
 ## Dữ liệu và giới hạn
 
